@@ -1,0 +1,58 @@
+# Dependencies (npm install is only needed for shot.js)
+node_modules/
+
+# Build outputs, regenerate with `node build.js`: index.html and dist/artifact.html (~10 MB each)
+/index.html
+dist/
+.next/
+
+# Generated from Wikipedia, regenerate with `node enrich.js` then `node images.js` (see README)
+/data/details.json
+/data/images.json
+/data/wiki-cache.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Logs
+*.log
+logs/
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+.vault*
+
+# Databases and data stores
+*.sqlite
+*.sqlite3
+*.db
+*.duckdb
+
+# Media, uploads, audio
+media/
+uploads/
+audio/
+
+# Hand backups
+*.bak*
+
+# shot.js screenshots, if OUT is pointed inside the repo
+/shots/
+/screenshots/
+
+# Tooling and OS
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+
+# Local Claude Code settings (no shared project skills here)
+.claude/

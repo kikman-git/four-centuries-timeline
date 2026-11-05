@@ -1,0 +1,1165 @@
+<title>Four Centuries</title>
+
+<style>
+/* ────────────────────────────────────────────────────────────────────────────
+   Tokens. Light is the base; dark is redefined twice so an explicit theme
+   stamp wins in both directions and the un-stamped "system" state still works.
+   Category hues are the validated trio (blue / orange / aqua) — checked
+   all-pairs under protanopia and deuteranopia against both surfaces below.
+   The fourth bucket is deliberately achromatic and carries a shape difference
+   (hollow mark) instead of a hue, because a fourth hue cannot pass the gate.
+   ──────────────────────────────────────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+
+  --plane:        #e9ecf0;   /* page ground — cool grey, biased toward the ink */
+  --surface:      #f6f7f9;   /* chart surface */
+  --surface-2:    #eef1f4;   /* recessed: toolbar, overview */
+  --ink:          #101418;
+  --ink-2:        #4b535d;
+  --ink-3:        #79828d;
+  --hairline:     #d8dde3;
+  --hairline-2:   #c3cad2;
+  --wash:         rgba(16,20,24,0.035);   /* era band tint */
+  --wash-2:       rgba(16,20,24,0.065);
+  --shadow:       0 1px 2px rgba(16,20,24,.06), 0 8px 24px rgba(16,20,24,.10);
+
+  --c-pol:        #2a78d6;
+  --c-war:        #eb6834;
+  --c-econ:       #1baf7a;
+  --c-shock:      #6b7480;
+
+  --sel:          rgba(16,20,24,0.08);
+  --focus:        #101418;
+
+  --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "Hoefler Text", Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --plane:      #0b0d10;
+    --surface:    #14171c;
+    --surface-2:  #191d23;
+    --ink:        #f0f3f6;
+    --ink-2:      #b3bcc7;
+    --ink-3:      #7d8792;
+    --hairline:   #262c34;
+    --hairline-2: #333b45;
+    --wash:       rgba(255,255,255,0.035);
+    --wash-2:     rgba(255,255,255,0.065);
+    --shadow:     0 1px 2px rgba(0,0,0,.5), 0 8px 28px rgba(0,0,0,.55);
+    --c-pol:      #3987e5;
+    --c-war:      #d95926;
+    --c-econ:     #199e70;
+    --c-shock:    #8d97a4;
+    --sel:        rgba(255,255,255,0.09);
+    --focus:      #f0f3f6;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --plane:      #0b0d10;
+  --surface:    #14171c;
+  --surface-2:  #191d23;
+  --ink:        #f0f3f6;
+  --ink-2:      #b3bcc7;
+  --ink-3:      #7d8792;
+  --hairline:   #262c34;
+  --hairline-2: #333b45;
+  --wash:       rgba(255,255,255,0.035);
+  --wash-2:     rgba(255,255,255,0.065);
+  --shadow:     0 1px 2px rgba(0,0,0,.5), 0 8px 28px rgba(0,0,0,.55);
+  --c-pol:      #3987e5;
+  --c-war:      #d95926;
+  --c-econ:     #199e70;
+  --c-shock:    #8d97a4;
+  --sel:        rgba(255,255,255,0.09);
+  --focus:      #f0f3f6;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+button, select, input { font: inherit; color: inherit; }
+:where(button, select, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ── Shell ─────────────────────────────────────────────────────────────────── */
+#app {
+  height: 100dvh;
+  min-height: 620px;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  overflow: hidden;
+  position: relative;   /* containing block for the About overlay */
+  --sbw: 0px;           /* measured scrollbar gutter, kept in sync from JS */
+}
+
+/* ── Masthead ──────────────────────────────────────────────────────────────── */
+.masthead {
+  display: flex; align-items: baseline; gap: 14px;
+  padding: 12px 18px 10px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--surface);
+  flex: none;
+}
+.masthead h1 {
+  font-family: var(--font-serif);
+  font-size: 21px; font-weight: 600; letter-spacing: -0.015em;
+  margin: 0; white-space: nowrap;
+}
+.masthead .range {
+  font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);
+  letter-spacing: 0.02em; font-variant-numeric: tabular-nums;
+}
+.masthead .spacer { flex: 1; }
+.masthead .count {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+
+/* ── Toolbar ───────────────────────────────────────────────────────────────── */
+.toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 18px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--hairline);
+  flex: none;
+}
+.group { display: flex; align-items: center; gap: 6px; }
+.group + .group::before {
+  content: ""; width: 1px; height: 20px; background: var(--hairline-2); margin: 0 1px;
+}
+.group.right { margin-left: auto; }
+.legend-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 9px 4px 7px;
+  border: 1px solid var(--hairline-2); border-radius: 999px;
+  background: transparent; cursor: pointer;
+  font-size: 12px; color: var(--ink-2); line-height: 1;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.legend-chip:hover { background: var(--sel); }
+.legend-chip[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-3); }
+.legend-chip[aria-pressed="false"] { opacity: .45; }
+.legend-chip .sw { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.legend-chip .sw.hollow { background: transparent !important; border: 2px solid var(--c-shock); }
+
+.btn {
+  border: 1px solid var(--hairline-2); background: transparent; border-radius: 6px;
+  padding: 5px 9px; cursor: pointer; font-size: 12px; color: var(--ink-2);
+  line-height: 1; transition: background .12s;
+}
+.btn:hover { background: var(--sel); color: var(--ink); }
+.btn.sq { width: 26px; padding: 5px 0; text-align: center; font-family: var(--font-mono); }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.zoomlabel { font-size: 10.5px; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+
+input[type="search"], select {
+  border: 1px solid var(--hairline-2); background: var(--surface);
+  border-radius: 6px; padding: 5px 8px; font-size: 12px; color: var(--ink);
+}
+input[type="search"] { width: 186px; }
+input[type="search"]::placeholder { color: var(--ink-3); }
+
+/* ── Era ribbon ────────────────────────────────────────────────────────────── */
+/* The ribbon and ruler must line up with the plot, which reserves a scrollbar
+   gutter — so they carry the same reserved width on the right. */
+.ribbon, .ruler { padding-right: var(--sbw); }
+.ribbon { height: 22px; flex: none; background: var(--surface); border-bottom: 1px solid var(--hairline); }
+.ribbon svg { display: block; width: 100%; height: 22px; }
+.ribbon text {
+  font-family: var(--font-ui); font-size: 9.5px; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; fill: var(--ink-3);
+}
+
+/* ── Year ruler ────────────────────────────────────────────────────────────── */
+.ruler { height: 30px; flex: none; background: var(--surface); border-bottom: 1px solid var(--hairline-2); }
+.ruler svg { display: block; width: 100%; height: 30px; }
+.ruler text {
+  font-family: var(--font-mono); font-size: 11px; fill: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.ruler text.minor { fill: var(--ink-3); font-size: 10px; }
+
+/* ── Plot ──────────────────────────────────────────────────────────────────── */
+.plotwrap { flex: 1; position: relative; min-height: 0; background: var(--surface); }
+.plot {
+  position: absolute; inset: 0; overflow-y: scroll; overflow-x: hidden;
+  scrollbar-gutter: stable;
+  cursor: grab; touch-action: pan-y;
+}
+.plot.dragging { cursor: grabbing; }
+.plot svg { display: block; width: 100%; }
+.ev { cursor: pointer; }
+.ev text { font-family: var(--font-ui); dominant-baseline: middle; }
+.ev .t1 { font-size: 12.5px; font-weight: 600; fill: var(--ink); }
+.ev .t2 { font-size: 12px; font-weight: 450; fill: var(--ink); }
+.ev .t3 { font-size: 11.5px; font-weight: 400; fill: var(--ink-2); }
+.ev:hover text { fill: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.gridline { stroke: var(--hairline); stroke-width: 1; }
+.gridline.decade { stroke: var(--hairline-2); }
+.nowline { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 3; }
+
+.empty {
+  position: absolute; inset: 0; display: none; place-items: center;
+  color: var(--ink-3); font-size: 13px; pointer-events: none;
+}
+.empty.on { display: grid; }
+
+/* ── Overview strip ────────────────────────────────────────────────────────── */
+.overview {
+  height: 62px; flex: none; background: var(--surface-2);
+  border-top: 1px solid var(--hairline); position: relative; cursor: crosshair;
+  touch-action: none;
+}
+.overview svg { display: block; width: 100%; height: 62px; }
+.overview text {
+  font-family: var(--font-mono); font-size: 9.5px; fill: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.vp-body { fill: var(--wash-2); stroke: var(--ink-3); stroke-width: 1; }
+.vp-handle { fill: var(--ink-3); cursor: ew-resize; }
+
+/* ── Detail panel ──────────────────────────────────────────────────────────── */
+.detail {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 440px; max-width: 92vw;
+  background: var(--surface); border-left: 1px solid var(--hairline-2);
+  box-shadow: var(--shadow); z-index: 20;
+  transform: translateX(101%); transition: transform .18s ease;
+  display: flex; flex-direction: column;
+}
+.detail.on { transform: none; }
+@media (prefers-reduced-motion: reduce) { .detail { transition: none; } }
+.detail header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--hairline);
+}
+.detail .date {
+  font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3);
+  letter-spacing: .02em; flex: 1;
+}
+.detail .body { padding: 0 0 26px; overflow-y: auto; }
+.detail .inner { padding: 16px 22px 0; }
+.detail figure { margin: 0; background: var(--surface-2); border-bottom: 1px solid var(--hairline); }
+/* Sources are 240px wide to keep the page under a few megabytes, so they take a
+   mild upscale here — fine on scanned historical photographs. The height cap
+   stops a portrait image from swallowing the panel; `contain` crops nothing. */
+.detail figure img {
+  display: block; width: 100%; height: auto;
+  max-height: 300px; object-fit: contain;
+}
+.detail figcaption {
+  font-size: 10.5px; line-height: 1.4; color: var(--ink-3);
+  padding: 6px 22px 7px; border-top: 1px solid var(--hairline);
+}
+.detail figcaption:empty { display: none; }
+.detail h2 {
+  font-family: var(--font-serif); font-size: 24px; line-height: 1.2;
+  font-weight: 600; margin: 0 0 4px; letter-spacing: -0.012em; text-wrap: balance;
+}
+.detail .kicker {
+  font-size: 12.5px; color: var(--ink-3); margin: 0 0 12px; line-height: 1.35;
+}
+.detail .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.eyebrow {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600;
+  color: var(--ink-3); margin: 0 0 6px; display: flex; align-items: center; gap: 8px;
+}
+.eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
+.detail .bg p {
+  font-family: var(--font-serif); font-size: 14.5px; line-height: 1.62;
+  color: var(--ink-2); margin: 0 0 11px;
+}
+.detail .bg p:last-child { margin-bottom: 0; }
+.detail .source {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 4px;
+  font-size: 12.5px; color: var(--ink-2); text-decoration: none;
+  border-bottom: 1px solid var(--hairline-2); padding-bottom: 1px;
+}
+.detail .source:hover { color: var(--ink); border-color: var(--ink-3); }
+.detail .credit { font-size: 10.5px; color: var(--ink-3); margin: 14px 0 16px; line-height: 1.45; }
+.detail .credit a { color: inherit; }
+.tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--ink-2); border: 1px solid var(--hairline-2);
+  border-radius: 4px; padding: 3px 7px; line-height: 1;
+}
+.tag .sw { width: 8px; height: 8px; border-radius: 50%; }
+.tag .sw.hollow { background: transparent !important; border: 2px solid var(--c-shock); }
+.detail p.sum {
+  font-family: var(--font-serif); font-size: 16px; line-height: 1.55;
+  color: var(--ink); margin: 0 0 20px; max-width: 62ch;
+}
+.detail .nav { display: flex; gap: 6px; }
+
+/* ── List view (the readable alternative to the plot) ──────────────────────── */
+.listview {
+  position: absolute; inset: 0; background: var(--surface); overflow-y: auto;
+  display: none; z-index: 10;
+}
+.listview.on { display: block; }
+.listview table { width: 100%; border-collapse: collapse; }
+.listview th {
+  position: sticky; top: 0; background: var(--surface-2); z-index: 1;
+  text-align: left; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600; padding: 8px 14px; border-bottom: 1px solid var(--hairline-2);
+}
+.listview td { padding: 9px 14px; border-bottom: 1px solid var(--hairline); font-size: 13px; vertical-align: top; }
+.listview tr { cursor: pointer; }
+.listview tbody tr:hover { background: var(--sel); }
+.listview td.d { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.listview td.t { font-weight: 550; }
+.listview td.t small { display: block; font-weight: 400; color: var(--ink-2); font-size: 12px; margin-top: 2px; max-width: 76ch; }
+.listview td.c { white-space: nowrap; }
+
+/* ── About ─────────────────────────────────────────────────────────────────── */
+.about {
+  position: absolute; inset: 0; background: var(--plane);
+  background: color-mix(in srgb, var(--plane) 82%, transparent);
+  backdrop-filter: blur(3px); z-index: 40; display: none; place-items: center; padding: 24px;
+}
+.about.on { display: grid; }
+.about .card {
+  background: var(--surface); border: 1px solid var(--hairline-2); border-radius: 10px;
+  box-shadow: var(--shadow); max-width: 620px; width: 100%; max-height: 86%;
+  overflow-y: auto; padding: 22px 26px 26px;
+}
+.about h2 { font-family: var(--font-serif); font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+.about h3 {
+  font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+  margin: 20px 0 8px; font-weight: 600;
+}
+.about p, .about li { font-size: 13.5px; line-height: 1.55; color: var(--ink-2); margin: 0 0 8px; }
+.about ul { margin: 0; padding-left: 18px; }
+.about kbd {
+  font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--hairline-2);
+  border-bottom-width: 2px; border-radius: 4px; padding: 1px 5px; color: var(--ink);
+  background: var(--surface-2);
+}
+.about .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; }
+.about .keys > kbd { justify-self: start; }
+.about .keys span { font-size: 13px; color: var(--ink-2); }
+
+/* ── Tooltip ───────────────────────────────────────────────────────────────── */
+.tip {
+  position: fixed; z-index: 60; pointer-events: none; opacity: 0;
+  background: var(--surface); border: 1px solid var(--hairline-2); border-radius: 7px;
+  box-shadow: var(--shadow); padding: 9px 11px; max-width: 300px;
+  transition: opacity .1s;
+}
+.tip.on { opacity: 1; }
+.tip .d { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); margin-bottom: 3px; }
+.tip .t { font-size: 13px; font-weight: 600; line-height: 1.25; margin-bottom: 5px; }
+.tip .s { font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+
+@media (max-width: 720px) {
+  .masthead .range { display: none; }
+  .detail { width: 100%; max-width: 100%; }
+  input[type="search"] { width: 120px; }
+}
+</style>
+
+<div id="app">
+  <div class="masthead">
+    <h1>Four Centuries</h1>
+    <span class="range">1600 &mdash; 2026</span>
+    <span class="spacer"></span>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="toolbar">
+    <div class="group" id="cats" role="group" aria-label="Categories (also the legend)"></div>
+
+    <div class="group">
+      <select id="imp" aria-label="Importance">
+        <option value="3">All events</option>
+        <option value="2">Major &amp; landmark</option>
+        <option value="1">Landmarks only</option>
+      </select>
+      <select id="region" aria-label="Region">
+        <option value="">All regions</option>
+      </select>
+      <input type="search" id="q" placeholder="Search all text…" aria-label="Search all event text">
+    </div>
+
+    <div class="group">
+      <span class="zoomlabel">Years</span>
+      <button class="btn sq" id="zxout" title="Zoom out the year axis (−)" aria-label="Zoom out the year axis">−</button>
+      <button class="btn sq" id="zxin" title="Zoom in the year axis (+)" aria-label="Zoom in the year axis">+</button>
+      <span class="zoomlabel">Rows</span>
+      <button class="btn sq" id="zyout" title="Shorter rows ([)" aria-label="Shorter rows">−</button>
+      <button class="btn sq" id="zyin" title="Taller rows (])" aria-label="Taller rows">+</button>
+    </div>
+
+    <div class="group right">
+      <button class="btn" id="fit" title="Fit the whole century (0)">Fit</button>
+      <button class="btn" id="listbtn" aria-pressed="false">List</button>
+      <button class="btn sq" id="aboutbtn" aria-label="About this board" title="About">?</button>
+    </div>
+  </div>
+
+  <div class="ribbon"><svg id="ribbonsvg" aria-hidden="true"></svg></div>
+  <div class="ruler"><svg id="rulersvg" aria-hidden="true"></svg></div>
+
+  <div class="plotwrap">
+    <div class="plot" id="plot" tabindex="0" role="application"
+         aria-label="Timeline of world events. Drag to pan, plus and minus to zoom.">
+      <svg id="plotsvg"></svg>
+    </div>
+    <div class="empty" id="empty">No events match these filters.</div>
+
+    <div class="listview" id="listview">
+      <table>
+        <thead><tr><th>Date</th><th>Event</th><th>Category</th><th>Region</th></tr></thead>
+        <tbody id="listbody"></tbody>
+      </table>
+    </div>
+
+    <aside class="detail" id="detail" aria-live="polite">
+      <header>
+        <span class="date" id="d-date"></span>
+        <button class="btn sq" id="d-prev" title="Previous event" aria-label="Previous event">‹</button>
+        <button class="btn sq" id="d-next" title="Next event" aria-label="Next event">›</button>
+        <button class="btn sq" id="d-close" title="Close (Esc)" aria-label="Close">×</button>
+      </header>
+      <div class="body" id="d-body">
+        <figure id="d-fig" hidden>
+          <img id="d-img" alt="">
+          <figcaption id="d-figcap"></figcaption>
+        </figure>
+        <div class="inner">
+          <h2 id="d-title"></h2>
+          <p class="kicker" id="d-kicker"></p>
+          <div class="meta" id="d-meta"></div>
+
+          <p class="eyebrow">Why it matters</p>
+          <p class="sum" id="d-sum"></p>
+
+          <div id="d-bgwrap" hidden>
+            <p class="eyebrow">Background</p>
+            <div class="bg" id="d-bg"></div>
+          </div>
+
+          <p class="credit" id="d-credit"></p>
+          <button class="btn" id="d-zoom">Zoom to this year</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div class="overview" id="overview" role="group" aria-label="Century overview — drag to pan, drag the edges to zoom">
+    <svg id="ovsvg"></svg>
+  </div>
+
+  <div class="about" id="about">
+    <div class="card">
+      <h2>Four Centuries</h2>
+      <p>World political and economic events from 1600 to 2026, placed on a true linear
+         year axis. Nothing is evenly spaced: crowded years look crowded, and the
+         seventeenth century really is that empty next to the twentieth.</p>
+
+      <h3>How to read it</h3>
+      <ul>
+        <li><b>Horizontal</b> is time, to scale. <b>Vertical</b> is only stacking — when several
+            events fall in the same span, they pile upward. Taller stacks mean busier years.</li>
+        <li>Colour is the category. The fourth category, <b>Shocks</b>, is drawn hollow rather
+            than in a fourth hue, because no fourth hue stays distinguishable under
+            red–green colour blindness.</li>
+        <li>Mark size is importance: landmark, major, notable. Landmarks sit closest to the axis.</li>
+        <li>Bands behind the grid are eras. The dashed line is today.</li>
+        <li>The ruler changes unit as you zoom: centuries across the whole board,
+            then half-centuries, decades and single years.</li>
+      </ul>
+
+      <h3>Controls</h3>
+      <div class="keys">
+        <kbd>drag</kbd><span>pan across the years</span>
+        <kbd>wheel</kbd><span>scroll the stack up and down</span>
+        <kbd>ctrl / cmd + wheel</kbd><span>zoom the year axis (or pinch)</span>
+        <kbd>alt + wheel</kbd><span>zoom the row height</span>
+        <kbd>shift + wheel</kbd><span>pan across the years</span>
+        <kbd>← →</kbd><span>pan &nbsp;·&nbsp; with <kbd>shift</kbd>, jump a decade</span>
+        <kbd>+ −</kbd><span>zoom the year axis</span>
+        <kbd>[ ]</kbd><span>zoom the row height</span>
+        <kbd>0</kbd><span>fit the whole century</span>
+        <kbd>/</kbd><span>search &nbsp;·&nbsp; <kbd>esc</kbd> closes</span>
+      </div>
+
+      <h3>About the data</h3>
+      <p>Each event carries two layers. The <b>selection, dates, categories and the
+         one-line "why it matters"</b> are written for this board, weighted toward
+         worldwide political and economic history rather than any one country. The
+         longer <b>background</b> and the images come from the matching Wikipedia
+         article, checked by hand against the event — automated matching sent
+         "Whatever it takes" to a pop song and "Nikkei peaks" to a mountaineering
+         article before the corrections went in.</p>
+      <p>Dates carry only the precision that is well established: some events are
+         placed to the day, some to the month, some only to the year. Search covers
+         the whole background text, so a word like <i>oil</i> or <i>famine</i> finds
+         every event whose article mentions it.</p>
+      <p>Coverage runs to <b>early 2025</b> and thins after that; 2026 is empty.
+         Judgements about what counts as important, and how events are categorised,
+         are debatable by design — edit <code>data/events.js</code> and rebuild to
+         make the board your own.</p>
+      <p style="font-size:12px">Background text and images: Wikipedia, CC BY-SA 4.0.
+         Images are filtered to public-domain and Creative Commons files, credited
+         under each picture.</p>
+      <button class="btn" id="aboutclose" style="margin-top:16px">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+/*__DATA__*/
+
+// ── Constants ────────────────────────────────────────────────────────────────
+const Y0 = 1600, Y1 = 2027, SPAN = Y1 - Y0;
+const TODAY = 2026 + (7 + 15 / 31) / 12;   // 16 Aug 2026
+
+const CATS = {
+  pol:   { short: "Politics", label: "Politics & power",  color: "var(--c-pol)"   },
+  war:   { short: "Conflict", label: "Conflict & war",    color: "var(--c-war)"   },
+  econ:  { short: "Economy",  label: "Economy & markets", color: "var(--c-econ)"  },
+  shock: { short: "Shocks",   label: "Shocks & crises",   color: "var(--c-shock)", hollow: true },
+};
+const IMP_LABEL = { 1: "Landmark", 2: "Major", 3: "Notable" };
+const REGION_LABEL = { Global: "Global", Europe: "Europe", Americas: "Americas",
+  Asia: "Asia", Africa: "Africa", MidEast: "Middle East", Oceania: "Oceania" };
+
+/* start, end, name, name for when the band is too narrow for the full one */
+const ERAS = [
+  [1600, 1648, "Wars of religion",         "Religion"],
+  [1648, 1715, "Westphalian order",        "Westphalia"],
+  [1715, 1775, "Mercantile empires",       "Mercantile"],
+  [1775, 1815, "Age of revolutions",       "Revolutions"],
+  [1815, 1848, "Congress Europe",          "Congress"],
+  [1848, 1871, "Nation-states",            "Nations"],
+  [1871, 1900, "New imperialism",          "Imperialism"],
+  [1900, 1914, "Imperial peace",           "Imperial"],
+  [1914, 1919, "First World War",          "WWI"],
+  [1919, 1929, "Interwar",                 "Interwar"],
+  [1929, 1939, "Great Depression",         "Depression"],
+  [1939, 1946, "Second World War",         "WWII"],
+  [1946, 1963, "Early Cold War",           "Cold War"],
+  [1963, 1980, "Détente & decolonisation", "Détente"],
+  [1980, 1992, "Late Cold War",            "Cold War II"],
+  [1992, 2001, "Unipolar decade",          "Unipolar"],
+  [2001, 2008, "War on terror",            "9/11 era"],
+  [2008, 2020, "After the crash",          "Post-crash"],
+  [2020, Y1,   "Pandemic & rivalry",       "Pandemic"],
+];
+
+const MONTHS = ["January","February","March","April","May","June",
+                "July","August","September","October","November","December"];
+
+// ── Data prep ────────────────────────────────────────────────────────────────
+function yearFrac(d) {
+  const p = d.split("-").map(Number);
+  if (p.length === 1) return p[0] + 0.5;
+  if (p.length === 2) return p[0] + (p[1] - 0.5) / 12;
+  return p[0] + ((p[1] - 1) + (p[2] - 0.5) / 31) / 12;
+}
+function fmtDate(d) {
+  const p = d.split("-").map(Number);
+  if (p.length === 1) return String(p[0]);
+  if (p.length === 2) return MONTHS[p[1] - 1] + " " + p[0];
+  return p[2] + " " + MONTHS[p[1] - 1] + " " + p[0];
+}
+const DATA = EVENTS.map((e, i) => ({ ...e, id: i, yf: yearFrac(e.d), year: +e.d.slice(0, 4) }))
+                   .sort((a, b) => a.yf - b.yf);
+// Search covers the full background text, so "oil" or "famine" finds every
+// event whose article mentions it. Lower-cased once, not on every keystroke.
+for (const e of DATA) {
+  const d = DETAILS[e.t];
+  e.hay = (e.t + " " + e.s + " " + (d ? d.k + " " + d.w + " " + d.x : "")).toLowerCase();
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+const state = {
+  ppy: 10,            // pixels per year
+  origin: Y0,         // leftmost year in view
+  rowH: 13,           // pixels per stacking row
+  cats: new Set(Object.keys(CATS)),
+  maxImp: 3,
+  region: "",
+  q: "",
+  sel: null,
+  list: false,
+};
+
+const $ = id => document.getElementById(id);
+const plot = $("plot"), plotsvg = $("plotsvg");
+let W = 800;                      // plot width in px
+let packed = [], rowCount = 0;    // layout results
+let visible = [];                 // filtered dataset, chronological
+
+const measure = document.createElement("canvas").getContext("2d");
+const textCache = new Map();
+function textW(s, weight, size) {
+  const k = weight + size + s;
+  let v = textCache.get(k);
+  if (v === undefined) {
+    measure.font = weight + " " + size + "px " + getComputedStyle(document.body).fontFamily;
+    v = measure.measureText(s).width;
+    textCache.set(k, v);
+  }
+  return v;
+}
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                  .replace(/"/g, "&quot;");
+
+// ── Filter + pack ────────────────────────────────────────────────────────────
+function filter() {
+  const q = state.q.trim().toLowerCase();
+  visible = DATA.filter(e =>
+    state.cats.has(e.c) &&
+    e.i <= state.maxImp &&
+    (!state.region || e.r === state.region) &&
+    (!q || e.hay.includes(q))
+  );
+}
+
+/* Rows are assigned greedily in importance-then-date order, so landmarks take
+   the rows nearest the axis and lesser events fill the gaps around them. Each
+   row keeps its own occupied intervals in absolute pixel space, which only
+   changes when the zoom or the filters change — never when panning. */
+const GAP = 4;
+function pack() {
+  const labels = showLabels();
+  const order = visible.slice().sort((a, b) => a.i - b.i || a.yf - b.yf);
+  const rows = [];
+  packed = [];
+  for (const e of order) {
+    const x = (e.yf - Y0) * state.ppy;
+    let w, tw = 0;
+    if (labels) {
+      const size = e.i === 1 ? 12.5 : e.i === 3 ? 11.5 : 12;
+      tw = Math.min(textW(e.t, e.i === 1 ? "600" : "400", size), 250);
+      w = 6 + tw + 2;
+    } else {
+      w = e.i === 1 ? 11 : e.i === 3 ? 8 : 9;
+    }
+    const a = x - (labels ? 3 : w / 2), b = a + w + GAP;
+    let r = 0;
+    for (; r < rows.length; r++) {
+      const iv = rows[r];
+      let hit = false;
+      for (let k = iv.length - 1; k >= 0 && iv[k][1] > a - 400; k--) {
+        if (iv[k][0] < b && iv[k][1] > a) { hit = true; break; }
+      }
+      if (!hit) break;
+    }
+    if (r === rows.length) rows.push([]);
+    rows[r].push([a, b]);
+    rows[r].sort((m, n) => m[0] - n[0]);
+    packed.push({ e, x, row: r, tw, labels });
+  }
+  rowCount = rows.length;
+  packed.sort((a, b) => a.e.yf - b.e.yf);
+}
+function showLabels() { return state.ppy >= 14 && state.rowH >= 16; }
+
+// ── Scales ───────────────────────────────────────────────────────────────────
+const PAD = 4;   // years of breathing room at each end, so 1600 isn't clipped
+const toX = yf => (yf - state.origin) * state.ppy;
+const toYear = px => state.origin + px / state.ppy;
+function minPpy() { return W / (SPAN + 2 * PAD); }
+function clampView() {
+  state.ppy = Math.min(420, Math.max(minPpy(), state.ppy));
+  const visYears = W / state.ppy;
+  state.origin = Math.min(Y1 + PAD - visYears, Math.max(Y0 - PAD, state.origin));
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+let raf = 0;
+function draw() { if (!raf) raf = requestAnimationFrame(() => { raf = 0; render(); }); }
+
+function render() {
+  clampView();
+  drawRibbon();
+  drawRuler();
+  drawPlot();
+  drawOverview();
+  $("count").textContent =
+    visible.length + " of " + DATA.length + " events · " +
+    Math.max(Y0, Math.round(state.origin)) + "–" +
+    Math.min(2026, Math.round(state.origin + W / state.ppy));
+}
+
+function drawRibbon() {
+  let s = "";
+  ERAS.forEach(([a, b, name, shortName], i) => {
+    const x0 = toX(a), x1 = toX(b);
+    if (x1 < 0 || x0 > W) return;
+    if (i % 2) s += `<rect x="${x0.toFixed(1)}" y="0" width="${(x1 - x0).toFixed(1)}" height="22" fill="var(--wash)"/>`;
+    s += `<line x1="${x0.toFixed(1)}" y1="0" x2="${x0.toFixed(1)}" y2="22" stroke="var(--hairline)"/>`;
+    // keep the label on screen while its era is only partly visible, and fall
+    // back to the short name rather than dropping the era's name entirely
+    const vs = Math.max(x0, 4), ve = Math.min(x1, W - 4), room = ve - vs;
+    const fits = t => room > textW(t, "600", 9.5) * 1.35 + 10;
+    const label = fits(name) ? name : fits(shortName) ? shortName : null;
+    if (label)
+      s += `<text x="${((vs + ve) / 2).toFixed(1)}" y="15" text-anchor="middle">${esc(label)}</text>`;
+  });
+  $("ribbonsvg").innerHTML = s;
+}
+
+/* The axis spans four centuries, so the ruler steps through a ladder of units
+   rather than a fixed one: centuries when the whole board is in view, then
+   half-centuries, decades, and single years as you zoom in. `major` is the
+   coarser unit whose ticks get the heavier stroke and the bolder label, so
+   the hierarchy stays visible at every step. */
+/* Deliberately jumps 10 → 100 with nothing between: the whole board should read
+   in centuries, and a 25- or 50-year step reads as neither one thing nor the
+   other. Zooming past ~270 visible years switches to decades, then to years. */
+const LADDER = [1, 2, 5, 10, 100, 500];
+const MAJOR = { 1: 10, 2: 10, 5: 50, 10: 100, 100: 100, 500: 500 };
+function tickStep() {
+  for (const st of LADDER) if (st * state.ppy >= 52) return st;
+  return LADDER[LADDER.length - 1];
+}
+function drawRuler() {
+  const step = tickStep(), major = MAJOR[step] || step * 5;
+  const minor = LADDER[Math.max(0, LADDER.indexOf(step) - 1)];
+  let s = "";
+  if (minor < step && minor * state.ppy >= 6) {
+    const m0 = Math.ceil(toYear(0) / minor) * minor;
+    for (let y = m0; y <= toYear(W); y += minor) {
+      const x = toX(y).toFixed(1);
+      s += `<line x1="${x}" y1="22" x2="${x}" y2="30" stroke="var(--hairline-2)"/>`;
+    }
+  }
+  const y0 = Math.ceil(toYear(0) / step) * step;
+  for (let y = y0; y <= toYear(W); y += step) {
+    const x = toX(y), xs = x.toFixed(1);
+    const big = y % major === 0;
+    s += `<line x1="${xs}" y1="${big ? 13 : 17}" x2="${xs}" y2="30" stroke="var(--${big ? "ink-3" : "hairline-2"})"/>`;
+    s += `<text x="${xs}" y="10" text-anchor="middle"${big ? "" : ' class="minor"'}>${y}</text>`;
+  }
+  // "now" only where it has room; the dashed line in the plot carries it otherwise
+  const tx = toX(TODAY);
+  if (tx > 0 && tx < W && state.ppy >= 20)
+    s += `<text x="${Math.min(tx, W - 16).toFixed(1)}" y="10" text-anchor="middle" class="minor">now</text>`;
+  $("rulersvg").innerHTML = s;
+}
+
+function markup(p, x) {
+  const { e } = p, c = CATS[e.c].color, hollow = !!CATS[e.c].hollow;
+  const rowY = p.row * state.rowH, mid = rowY + state.rowH / 2;
+  const on = state.sel === e.id;
+  let g = `<g class="ev" data-id="${e.id}" tabindex="-1">`;
+  if (p.labels) {
+    const h = Math.max(9, state.rowH - 6), w = e.i === 1 ? 4 : e.i === 3 ? 2 : 3;
+    const y = mid - h / 2;
+    if (on) g += `<rect x="${(x - 6).toFixed(1)}" y="${(rowY + 1).toFixed(1)}" width="${(p.tw + 16).toFixed(1)}" height="${(state.rowH - 2).toFixed(1)}" rx="3" fill="var(--sel)"/>`;
+    g += hollow
+      ? `<rect x="${(x - w / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${w}" height="${h}" rx="${w / 2}" fill="none" stroke="${c}" stroke-width="1.5"/>`
+      : `<rect x="${(x - w / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${w}" height="${h}" rx="${w / 2}" fill="${c}"/>`;
+    const size = e.i === 1 ? 12.5 : e.i === 3 ? 11.5 : 12;
+    let label = e.t;
+    if (p.tw >= 250) {                       // trim rather than overflow
+      let n = e.t.length;
+      while (n > 6 && textW(e.t.slice(0, n) + "…", e.i === 1 ? "600" : "400", size) > 250) n--;
+      label = e.t.slice(0, n) + "…";
+    }
+    g += `<text class="t${e.i}" x="${(x + 6).toFixed(1)}" y="${mid.toFixed(1)}">${esc(label)}</text>`;
+  } else {
+    const r = e.i === 1 ? 5 : e.i === 3 ? 3.4 : 4.2;
+    if (on) g += `<circle cx="${x.toFixed(1)}" cy="${mid.toFixed(1)}" r="${r + 3.5}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>`;
+    g += hollow
+      ? `<circle cx="${x.toFixed(1)}" cy="${mid.toFixed(1)}" r="${r - 0.6}" fill="var(--surface)" stroke="${c}" stroke-width="2"/>`
+      : `<circle cx="${x.toFixed(1)}" cy="${mid.toFixed(1)}" r="${r}" fill="${c}" stroke="var(--surface)" stroke-width="1"/>`;
+    g += `<circle cx="${x.toFixed(1)}" cy="${mid.toFixed(1)}" r="9" fill="transparent"/>`;  // hit target
+  }
+  return g + "</g>";
+}
+
+function drawPlot() {
+  const H = Math.max(plot.clientHeight, rowCount * state.rowH + state.rowH * 2);
+  let s = "";
+
+  ERAS.forEach(([a, b], i) => {
+    if (!(i % 2)) return;
+    const x0 = toX(a), x1 = toX(b);
+    if (x1 < 0 || x0 > W) return;
+    s += `<rect x="${x0.toFixed(1)}" y="0" width="${(x1 - x0).toFixed(1)}" height="${H}" fill="var(--wash)"/>`;
+  });
+
+  const step = tickStep(), major = MAJOR[step] || step * 5;
+  const g0 = Math.ceil(toYear(0) / step) * step;
+  for (let y = g0; y <= toYear(W); y += step) {
+    const x = toX(y).toFixed(1);
+    s += `<line class="gridline${y % major === 0 ? " decade" : ""}" x1="${x}" y1="0" x2="${x}" y2="${H}"/>`;
+  }
+  ERAS.forEach(([a]) => {
+    const x = toX(a);
+    if (x >= 0 && x <= W) s += `<line class="gridline decade" x1="${x.toFixed(1)}" y1="0" x2="${x.toFixed(1)}" y2="${H}"/>`;
+  });
+
+  const tx = toX(TODAY);
+  if (tx > 0 && tx < W) s += `<line class="nowline" x1="${tx.toFixed(1)}" y1="0" x2="${tx.toFixed(1)}" y2="${H}"/>`;
+
+  for (const p of packed) {
+    const x = toX(p.e.yf);
+    if (x < -270 || x > W + 40) continue;
+    s += markup(p, x);
+  }
+
+  plotsvg.setAttribute("height", H);
+  plotsvg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  plotsvg.innerHTML = s;
+  $("empty").classList.toggle("on", visible.length === 0);
+}
+
+function drawOverview() {
+  const el = $("overview"), w = el.clientWidth, h = 62;
+  const counts = new Array(SPAN).fill(0);
+  for (const e of visible) counts[Math.min(SPAN - 1, e.year - Y0)]++;
+  const peak = Math.max(1, ...counts);
+  const bw = w / SPAN;
+  let s = "";
+  for (let i = 0; i < SPAN; i++) {
+    if (!counts[i]) continue;
+    const bh = 4 + (counts[i] / peak) * 30;
+    s += `<rect x="${(i * bw).toFixed(2)}" y="${(40 - bh).toFixed(1)}" width="${Math.max(0.9, bw - 0.6).toFixed(2)}" height="${bh.toFixed(1)}" fill="var(--ink-3)" opacity=".55"/>`;
+  }
+  s += `<line x1="0" y1="40" x2="${w}" y2="40" stroke="var(--hairline-2)"/>`;
+  for (let y = 1600; y <= 2000; y += 50) {
+    const x = ((y - Y0) / SPAN) * w;
+    const anchor = x < 14 ? "start" : x > w - 14 ? "end" : "middle";
+    s += `<line x1="${x.toFixed(1)}" y1="40" x2="${x.toFixed(1)}" y2="45" stroke="var(--hairline-2)"/>`;
+    s += `<text x="${x.toFixed(1)}" y="55" text-anchor="${anchor}">${y}</text>`;
+  }
+  const vx = Math.max(0, ((state.origin - Y0) / SPAN) * w);
+  const vw = Math.min(w - vx, Math.max(6, (W / state.ppy / SPAN) * w));
+  s += `<rect class="vp-body" x="${vx.toFixed(1)}" y="1" width="${vw.toFixed(1)}" height="40" rx="2"/>`;
+  s += `<rect class="vp-handle" x="${(vx - 1.5).toFixed(1)}" y="1" width="3" height="40" data-h="l"/>`;
+  s += `<rect class="vp-handle" x="${(vx + vw - 1.5).toFixed(1)}" y="1" width="3" height="40" data-h="r"/>`;
+  $("ovsvg").setAttribute("viewBox", `0 0 ${w} ${h}`);
+  $("ovsvg").innerHTML = s;
+}
+
+// ── Interaction: zoom & pan ──────────────────────────────────────────────────
+function zoomX(factor, anchorPx) {
+  const a = anchorPx == null ? W / 2 : anchorPx;
+  const yearAt = toYear(a);
+  state.ppy = Math.min(420, Math.max(minPpy(), state.ppy * factor));
+  state.origin = yearAt - a / state.ppy;
+  pack(); draw();
+}
+function zoomY(delta) {
+  state.rowH = Math.min(46, Math.max(8, state.rowH + delta));
+  pack(); draw();
+}
+function panYears(dy) { state.origin += dy; draw(); }
+
+/* Fit shows the whole century and then spends the leftover vertical space on
+   row height, so the stacks read as a density map instead of a thin band
+   floating above an empty plot. */
+function fit() {
+  state.origin = Y0 - PAD;
+  state.ppy = minPpy();
+  pack();
+  const avail = Math.max(120, plot.clientHeight - 16);
+  for (let k = 0; k < 3; k++) {
+    const cap = showLabels() ? 32 : 30;
+    const target = Math.max(9, Math.min(cap, Math.floor(avail / Math.max(1, rowCount))));
+    if (target === state.rowH) break;
+    state.rowH = target;
+    pack();
+  }
+  draw();
+}
+
+plot.addEventListener("wheel", ev => {
+  if (ev.ctrlKey || ev.metaKey) {
+    ev.preventDefault();
+    zoomX(Math.pow(1.0022, -ev.deltaY), ev.clientX - plot.getBoundingClientRect().left);
+  } else if (ev.altKey) {
+    ev.preventDefault();
+    zoomY(ev.deltaY < 0 ? 2 : -2);
+  } else if (ev.shiftKey || Math.abs(ev.deltaX) > Math.abs(ev.deltaY)) {
+    ev.preventDefault();
+    panYears((ev.shiftKey ? ev.deltaY || ev.deltaX : ev.deltaX) / state.ppy);
+  }
+}, { passive: false });
+
+/* Drag-to-pan listens on the window rather than capturing the pointer: a
+   captured pointer retargets the subsequent click, which would break selecting
+   an event by clicking it. `lastDrag` lets the click handler ignore the click
+   that ends a real drag. */
+let drag = null, lastDrag = 0;
+plot.addEventListener("pointerdown", ev => {
+  if (ev.button !== 0) return;
+  drag = { x: ev.clientX, y: ev.clientY, top: plot.scrollTop, moved: 0 };
+  lastDrag = 0;
+  plot.classList.add("dragging");
+});
+function onMove(ev) {
+  if (!drag) return;
+  const dx = ev.clientX - drag.x, dy = ev.clientY - drag.y;
+  drag.moved += Math.abs(dx) + Math.abs(dy);
+  state.origin -= dx / state.ppy;
+  plot.scrollTop = drag.top - dy;
+  drag.x = ev.clientX; drag.y = ev.clientY; drag.top = plot.scrollTop;
+  draw();
+}
+function endDrag() {
+  if (!drag) return;
+  lastDrag = drag.moved;
+  plot.classList.remove("dragging");
+  drag = null;
+}
+addEventListener("pointermove", onMove);
+addEventListener("pointerup", endDrag);
+addEventListener("pointercancel", endDrag);
+
+// ── Interaction: overview strip ──────────────────────────────────────────────
+const ov = $("overview");
+let ovDrag = null;
+ov.addEventListener("pointerdown", ev => {
+  const w = ov.clientWidth, px = ev.clientX - ov.getBoundingClientRect().left;
+  const year = Y0 + (px / w) * SPAN;
+  const handle = ev.target.dataset && ev.target.dataset.h;
+  if (handle) ovDrag = { mode: handle };
+  else {
+    const vis = W / state.ppy;
+    if (year < state.origin || year > state.origin + vis) state.origin = year - vis / 2;
+    ovDrag = { mode: "move", grab: year - state.origin };
+    draw();
+  }
+  ov.setPointerCapture(ev.pointerId);
+});
+ov.addEventListener("pointermove", ev => {
+  if (!ovDrag) return;
+  const w = ov.clientWidth, px = ev.clientX - ov.getBoundingClientRect().left;
+  const year = Y0 + (px / w) * SPAN;
+  if (ovDrag.mode === "move") { state.origin = year - ovDrag.grab; draw(); }
+  else {
+    const right = state.origin + W / state.ppy;
+    if (ovDrag.mode === "l") {
+      const o = Math.min(year, right - 0.5);
+      state.ppy = W / (right - o); state.origin = o;
+    } else {
+      const r = Math.max(year, state.origin + 0.5);
+      state.ppy = W / (r - state.origin);
+    }
+    clampView(); pack(); draw();
+  }
+});
+const endOv = ev => { if (ovDrag) { ovDrag = null; try { ov.releasePointerCapture(ev.pointerId); } catch (e) {} } };
+ov.addEventListener("pointerup", endOv);
+ov.addEventListener("pointercancel", endOv);
+
+// ── Interaction: selection, tooltip ──────────────────────────────────────────
+const tip = $("tip");
+plotsvg.addEventListener("mouseover", ev => {
+  const g = ev.target.closest(".ev");
+  if (!g) return;
+  const e = DATA.find(d => d.id === +g.dataset.id);
+  tip.innerHTML = `<div class="d">${esc(fmtDate(e.d))} · ${esc(CATS[e.c].label)}</div>
+    <div class="t">${esc(e.t)}</div><div class="s">${esc(e.s)}</div>`;
+  tip.classList.add("on");
+  positionTip(ev);
+});
+plotsvg.addEventListener("mousemove", ev => { if (tip.classList.contains("on")) positionTip(ev); });
+plotsvg.addEventListener("mouseout", ev => {
+  if (!ev.relatedTarget || !ev.relatedTarget.closest || !ev.relatedTarget.closest(".ev"))
+    tip.classList.remove("on");
+});
+function positionTip(ev) {
+  const r = tip.getBoundingClientRect();
+  let x = ev.clientX + 16, y = ev.clientY + 16;
+  if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 16;
+  if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 16;
+  tip.style.left = Math.max(8, x) + "px";
+  tip.style.top = Math.max(8, y) + "px";
+}
+plotsvg.addEventListener("click", ev => {
+  const g = ev.target.closest(".ev");
+  if (!g || lastDrag > 4) return;
+  select(+g.dataset.id);
+});
+
+// ── Detail panel ─────────────────────────────────────────────────────────────
+function select(id) {
+  state.sel = id;
+  const e = DATA.find(d => d.id === id);
+  if (!e) return;
+  const det = DETAILS[e.t], img = IMAGES[e.t];
+
+  $("d-date").textContent = fmtDate(e.d);
+  $("d-title").textContent = e.t;
+  $("d-kicker").textContent = (det && det.k) || "";
+  $("d-kicker").hidden = !(det && det.k);
+
+  const c = CATS[e.c];
+  $("d-meta").innerHTML =
+    `<span class="tag"><span class="sw${c.hollow ? " hollow" : ""}" style="background:${c.color}"></span>${esc(c.label)}</span>` +
+    `<span class="tag">${esc(REGION_LABEL[e.r] || e.r)}</span>` +
+    `<span class="tag">${IMP_LABEL[e.i]}</span>`;
+  $("d-sum").textContent = e.s;
+
+  if (img) {
+    $("d-img").src = img.d;
+    $("d-img").alt = e.t;
+    $("d-figcap").textContent = [img.c, img.l].filter(Boolean).join(" · ");
+    $("d-fig").hidden = false;
+  } else {
+    $("d-fig").hidden = true;
+    $("d-img").removeAttribute("src");
+  }
+
+  if (det && det.x) {
+    $("d-bg").innerHTML = det.x.split("\n").filter(p => p.trim())
+      .map(p => `<p>${esc(p.trim())}</p>`).join("");
+    $("d-bgwrap").hidden = false;
+    $("d-credit").innerHTML =
+      `<a class="source" href="${esc(det.u)}" target="_blank" rel="noopener">Read “${esc(det.w)}” on Wikipedia →</a>` +
+      `<br><br>Background text from Wikipedia, CC BY-SA 4.0. The summary above is the board's own.`;
+  } else {
+    $("d-bgwrap").hidden = true;
+    $("d-credit").textContent = "";
+  }
+
+  $("d-body").scrollTop = 0;
+  $("detail").classList.add("on");
+  tip.classList.remove("on");
+  draw();
+}
+function step(dir) {
+  if (state.sel == null) return;
+  const i = visible.findIndex(e => e.id === state.sel);
+  const n = visible[Math.max(0, Math.min(visible.length - 1, i + dir))];
+  if (!n) return;
+  select(n.id);
+  const x = toX(n.yf);
+  if (x < 40 || x > W - 40) state.origin = n.yf - (W / state.ppy) / 2;
+  const p = packed.find(p => p.e.id === n.id);
+  if (p) plot.scrollTop = Math.max(0, p.row * state.rowH - plot.clientHeight / 2);
+  draw();
+}
+$("d-close").onclick = () => { $("detail").classList.remove("on"); state.sel = null; draw(); };
+$("d-prev").onclick = () => step(-1);
+$("d-next").onclick = () => step(1);
+$("d-zoom").onclick = () => {
+  const e = DATA.find(d => d.id === state.sel);
+  if (!e) return;
+  state.ppy = Math.max(state.ppy, 90);
+  state.origin = e.yf - (W / state.ppy) / 2;
+  state.rowH = Math.max(state.rowH, 22);
+  pack(); draw();
+  const p = packed.find(p => p.e.id === e.id);
+  if (p) plot.scrollTop = Math.max(0, p.row * state.rowH - plot.clientHeight / 2);
+};
+
+// ── List view ────────────────────────────────────────────────────────────────
+function drawList() {
+  $("listbody").innerHTML = visible.map(e => {
+    const c = CATS[e.c];
+    return `<tr data-id="${e.id}"><td class="d">${esc(fmtDate(e.d))}</td>
+      <td class="t">${esc(e.t)}<small>${esc(e.s)}</small></td>
+      <td class="c"><span class="tag"><span class="sw${c.hollow ? " hollow" : ""}" style="background:${c.color}"></span>${esc(c.label)}</span></td>
+      <td>${esc(REGION_LABEL[e.r] || e.r)}</td></tr>`;
+  }).join("");
+}
+$("listbody").addEventListener("click", ev => {
+  const tr = ev.target.closest("tr");
+  if (tr) select(+tr.dataset.id);
+});
+$("listbtn").onclick = () => {
+  state.list = !state.list;
+  $("listbtn").setAttribute("aria-pressed", state.list);
+  $("listview").classList.toggle("on", state.list);
+  if (state.list) drawList();
+};
+
+// ── Filters ──────────────────────────────────────────────────────────────────
+$("cats").innerHTML = Object.entries(CATS).map(([k, c]) =>
+  `<button class="legend-chip" data-c="${k}" aria-pressed="true" title="${esc(c.label)}">
+     <span class="sw${c.hollow ? " hollow" : ""}" style="background:${c.color}"></span>${esc(c.short)}
+   </button>`).join("");
+$("cats").addEventListener("click", ev => {
+  const b = ev.target.closest(".legend-chip");
+  if (!b) return;
+  const k = b.dataset.c;
+  if (state.cats.has(k) && state.cats.size > 1) state.cats.delete(k);
+  else state.cats.add(k);
+  b.setAttribute("aria-pressed", state.cats.has(k));
+  refilter();
+});
+$("region").innerHTML += Object.entries(REGION_LABEL)
+  .map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+
+function refilter() { filter(); pack(); draw(); if (state.list) drawList(); }
+$("imp").onchange = e => { state.maxImp = +e.target.value; refilter(); };
+$("region").onchange = e => { state.region = e.target.value; refilter(); };
+let qt;
+$("q").oninput = e => { clearTimeout(qt); qt = setTimeout(() => { state.q = e.target.value; refilter(); }, 120); };
+
+$("zxin").onclick = () => zoomX(1.5);
+$("zxout").onclick = () => zoomX(1 / 1.5);
+$("zyin").onclick = () => zoomY(3);
+$("zyout").onclick = () => zoomY(-3);
+$("fit").onclick = fit;
+$("aboutbtn").onclick = () => $("about").classList.add("on");
+$("aboutclose").onclick = () => $("about").classList.remove("on");
+$("about").onclick = ev => { if (ev.target.id === "about") $("about").classList.remove("on"); };
+
+// ── Keyboard ─────────────────────────────────────────────────────────────────
+addEventListener("keydown", ev => {
+  const typing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+  if (ev.key === "Escape") {
+    if ($("about").classList.contains("on")) $("about").classList.remove("on");
+    else if (typing) document.activeElement.blur();
+    else { $("detail").classList.remove("on"); state.sel = null; draw(); }
+    return;
+  }
+  if (typing) return;
+  const vis = W / state.ppy;
+  switch (ev.key) {
+    case "ArrowLeft":  panYears(ev.shiftKey ? -10 : -vis * 0.2); ev.preventDefault(); break;
+    case "ArrowRight": panYears(ev.shiftKey ?  10 :  vis * 0.2); ev.preventDefault(); break;
+    case "+": case "=": zoomX(1.5); break;
+    case "-": case "_": zoomX(1 / 1.5); break;
+    case "]": zoomY(3); break;
+    case "[": zoomY(-3); break;
+    case "0": fit(); break;
+    case "/": ev.preventDefault(); $("q").focus(); break;
+    case "n": step(1); break;
+    case "p": step(-1); break;
+  }
+});
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
+function syncWidth() {
+  const gutter = plot.offsetWidth - plot.clientWidth;
+  $("app").style.setProperty("--sbw", gutter + "px");
+  const w = plot.clientWidth || 800;
+  if (w === W) return false;
+  W = w;
+  return true;
+}
+function resize() { syncWidth(); clampView(); pack(); draw(); }
+addEventListener("resize", resize);
+
+filter();
+syncWidth();
+fit();
+// Re-measure once layout and fonts have settled: text widths drive the packing,
+// and the scrollbar gutter is only knowable after the first paint.
+requestAnimationFrame(() => { textCache.clear(); syncWidth(); fit(); });
+</script>
